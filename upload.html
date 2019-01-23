@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <title>SelfieLessActs</title>
+
+    <style>
+      body {
+        background: url(imgportfolio/blurred.jpg);
+        background-size: contain;
+      }
+      .img-circle {
+        width: 304px;
+        height: 236px;
+      }
+      .act {
+        margin-left: 20px;
+        margin-bottom: 20px;
+      }
+      #btn {
+        margin-bottom: 20px;
+      }
+      .form {
+        margin-left: 20px;
+        margin-top: 40px;
+      }
+      #upload {
+        display: block;
+      }
+    </style>
+    <script>
+      $(document).ready(function(){
+        $("button").click(function(){
+          var upvotes = parseInt($(this).text());
+          $(this).text(upvotes+1+" Upvote");
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <a class="navbar-brand" href="#">SelfieLessActs</a>
+          </div>
+          <ul class="nav navbar-nav">
+            <li><a href="index.html">Home</a></li>
+            <li class="active"><a href="#">Upload</a></li>
+          </ul>
+        </div>
+      </nav>
+    <div class="container-fluid" style="margin-top:50px;margin-left:50px">
+      <h1 class="bg-primary">Select a Category</h1>
+      <div class="form">
+        <form action="/action_page.php">
+          <div class="radio">
+            <label><input type="radio" name="optradio">Option 1</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="optradio">Option 2</label>
+          </div>
+          <div class="radio disabled">
+            <label><input type="radio" name="optradio">Option 3</label>
+          </div>
+          <div class="form-group">
+            <div class="col-xs-4" id="upload">
+              <label for="usr">Add Caption</label>
+              <textarea class="form-control" rows="5" id="comment"></textarea>
+            </div>
+            <div id="upload">
+              <label for="file">Upload an Image</label>
+              <input type="file" name="pic" accept="image/*">
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
