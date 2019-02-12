@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato&amp;subset=latin,latin-ext">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js" charset="utf-8"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" charset="utf-8"></script>
+    <title></title>
+    <style media="screen">
+      .navbar-brand {
+        padding: 0px;
+      }
+      .navbar-brand>img {
+        height: 100%;
+        padding: 15px;
+        width: auto;
+      }
+      /* EXAMPLE 6 - Background Logo*/
+      .example6 .navbar-brand{
+        background: url("{{ url_for('static', filename='icon.png') }}") center / contain no-repeat;
+        width: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse navbar-static-top example6">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar6">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand text-hide" href="http://disputebills.com">Brand Text
+          </a>
+        </div>
+        <div id="navbar6" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="http://0.0.0.0:5000/user.html">Add User</a></li>
+            <li><a href="http://0.0.0.0:5000/remove.html">Remove User</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="http://0.0.0.0:5000/api/v1/categories">List All Categories</a></li>
+                <li><a href="http://0.0.0.0:5000/addcat.html">Add a Category</a></li>
+                <li><a href="http://0.0.0.0:5000/cremove.html">Remove a Category</a></li>
+                <li class="divider"></li>
+                <li><a href="http://0.0.0.0:5000/listact.html">List acts for a given category</a></li>
+                <li><a href="http://0.0.0.0:5000/size.html">List number of acts for a given category</a></li>
+                <li><a href="http://0.0.0.0:5000/crange.html">Return number of acts for a given category in a given range</a></li>
+                <li class="divider"></li>
+                <li><a href="http://0.0.0.0:5000/upload.html">Upload an act</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    {% for key, value in result.items() %}
+      <div class="container">
+        <h1 class="bg-primary">{{ key }}</h1>
+        <div class="row">
+          {% for act in value %}
+            <div class="col-md-4" id="c">
+              <div class="thumbnail">
+                <a href="img/image1.jpeg" target="_blank">
+                  <img src={{ act['imgB64'] }} alt="Lights" style="width:100%">
+                  <div class="caption">
+                    <p>{{ act['caption'] }}</p>
+                  </div>
+                </a>
+              </div>
+              <div class="btn-group">
+                  <button type="button" class="btn btn-info upvote" id="{{ act['actId'] }}">upvote</button>
+                  <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span>{{ act['upvotes'] }}</span>
+                  </button>
+                  <button class="btn btn-primary delete" type="button">DELETE</button>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  </body>
+  <script type="text/javascript">
+    var obj = {
+      upvote: function(e) {
+        //alert("Hello");
+        var actid = e.target.id;
+        //alert(actid);
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("POST", "http://0.0.0.0:5000/api/v1/acts/upvote", true);
+        xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhttp.send(JSON.stringify([actid]));
+        var nupv = e.target.nextSibling.nextSibling.childNodes[1];
+        nupv.innerHTML = parseInt(nupv.innerHTML) + 1;
+        e.target.removeEventListener('click', obj.upvote, false);
+      },
+      delete: function(e) {
+        var delimg = e.target.parentNode.previousSibling.previousSibling.parentNode;
+        var actid = e.target.previousSibling.previousSibling.previousSibling.previousSibling.id;
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("DELETE", "http://0.0.0.0:5000/api/v1/acts/" + actid, true);
+        xhttp.send();
+        delimg.parentNode.removeChild(delimg);
+      },
+      addEvent: function() {
+        var upv = document.querySelectorAll('.upvote');
+        for(var i=0; i<upv.length; i++) {
+          upv[i].addEventListener('click', obj.upvote, false)
+        }
+        var del = document.querySelectorAll('.delete');
+        for(var i=0; i<del.length; i++) {
+          del[i].addEventListener('click', obj.delete, false)
+        }
+      }
+    }
+    obj.addEvent();
+  </script>
+</html>

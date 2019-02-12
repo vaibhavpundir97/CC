@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato&amp;subset=latin,latin-ext">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js" charset="utf-8"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" charset="utf-8"></script>
+    <title></title>
+    <style media="screen">
+      .navbar-brand {
+        padding: 0px;
+      }
+      .navbar-brand>img {
+        height: 100%;
+        padding: 15px;
+        width: auto;
+      }
+      /* EXAMPLE 6 - Background Logo*/
+      .example6 .navbar-brand{
+        background: url("{{ url_for('static', filename='icon.png') }}") center / contain no-repeat;
+        width: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse navbar-static-top example6">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar6">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand text-hide" href="http://disputebills.com">Brand Text
+          </a>
+        </div>
+        <div id="navbar6" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="http://0.0.0.0:5000">Home</a></li>
+            <li><a href="http://0.0.0.0:5000/user.html">Add User</a></li>
+            <li><a href="http://0.0.0.0:5000/remove.html">Remove User</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li class="active"><a href="#">List All Categories</a></li>
+                <li><a href="http://0.0.0.0:5000/addcat.html">Add a Category</a></li>
+                <li><a href="http://0.0.0.0:5000/cremove.html">Remove a Category</a></li>
+                <li class="divider"></li>
+                <li><a href="http://0.0.0.0:5000/listact.html">List acts for a given category</a></li>
+                <li><a href="http://0.0.0.0:5000/size.html">List number of acts for a given category</a></li>
+                <li><a href="http://0.0.0.0:5000/crange.html">Return number of acts for a given category in a given range</a></li>
+                <li class="divider"></li>
+                <li><a href="http://0.0.0.0:5000/upload.html">Upload an act</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Category</th>
+            <th>Number of Acts</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set i = [1] %}
+          {% set j = 1 %}
+          {% for key, value in result.items() %}
+            <tr>
+              <td>{{ i[0] }}</td>
+              <td>{{ key }}</td>
+              <td>{{ value }}</td>
+            </tr>
+            {% set _ = i.append(i.pop() + j|int) %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>
