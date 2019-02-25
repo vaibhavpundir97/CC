@@ -2,6 +2,8 @@ from flask import Flask, render_template, request
 from flask_api import status
 import json
 import time
+import base64
+import binascii
 app = Flask(__name__)
 
 @app.route('/')
@@ -52,6 +54,23 @@ def removeUser(username):
                 users = open('users.json', 'w')
                 json.dump(data, users)
                 users.close()
+                acts = open('acts.json')
+                data = json.load(acts)
+                acts.close();
+                actid = open('actid.json')
+                dataid = json.load(actid)
+                actid.close()
+                for key, value in data.items():
+                    for i in value:
+                        if i['username'] == username:
+                            dataid['ID'].remove(i['actId'])
+                            data[key].remove(i)
+                acts = open('acts.json', 'w')
+                json.dump(data, acts)
+                acts.close();
+                actid = open('actid.json', 'w')
+                json.dump(dataid, actid)
+                actid.close()
                 return "{}", status.HTTP_200_OK
         return "{}", status.HTTP_400_BAD_REQUEST
 
@@ -70,11 +89,15 @@ def listCategories():
         for key, value in data.items():
             result[key] = len(value)
         if result == {}:
-            return "{}", status.HTTP_204_NO_CONTENT
-        return render_template("categories.html", result = result), status.HTTP_200_OK
+            return json.dumps(result), status.HTTP_204_NO_CONTENT
+        return json.dumps(result), status.HTTP_200_OK
     else:
         for key, value in data.items():
-            if key == request.json[0]:
+            if request.json == {}:
+                return "{}", status.HTTP_405_METHOD_NOT_ALLOWED
+            if len(request.json) == 0:
+                return "{}", status.HTTP_400_BAD_REQUEST
+            if request.json == None or key == request.json[0]:
                 return "{}", status.HTTP_400_BAD_REQUEST
         data[request.json[0]] = []
         acts = open('acts.json', 'w')
@@ -94,12 +117,23 @@ def removeCategory(categoryname):
     acts.close()
     for key, value in data.items():
         if key == categoryname:
+            r = []
+            for value in data[key]:
+                r.append(value['actId'])
             del data[key]
             acts = open('acts.json', 'w')
             json.dump(data, acts)
             acts.close()
-            return "Success", status.HTTP_200_OK
-    return "Category name doesn't exist", status.HTTP_400_BAD_REQUEST
+            acts = open('actid.json')
+            data = json.load(acts)
+            acts.close()
+            for i in r:
+                data['ID'].remove(i)
+            acts = open('actid.json', 'w')
+            json.dump(data, acts)
+            acts.close()
+            return "{}", status.HTTP_200_OK
+    return "{}", status.HTTP_400_BAD_REQUEST
 
 #6
 @app.route('/listact.html')
@@ -118,12 +152,12 @@ def listActs(categoryname):
             if len(value) < 100:
                 result = data[key]
                 if result == []:
-                    return "No Content", status.HTTP_204_NO_CONTENT
-                return render_template("listActsCat.html", result = result), status.HTTP_200_OK
+                    return "[]", status.HTTP_204_NO_CONTENT
+                return json.dumps(result), status.HTTP_200_OK
             else:
-                return "Too Large", status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+                return "[]", status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
                 #return ' '.join(str(i) for i in value)
-    return "Category not present", status.HTTP_400_BAD_REQUEST
+    return "[]", status.HTTP_400_BAD_REQUEST
 
 #7
 @app.route('/size.html')
@@ -137,8 +171,8 @@ def categorySize(categoryname):
     acts.close()
     for key, value in data.items():
         if key == categoryname:
-            return json.dumps(len(value)), status.HTTP_200_OK
-    return "{}", status.HTTP_204_NO_CONTENT
+            return json.dumps([len(value)]), status.HTTP_200_OK
+    return "[]", status.HTTP_204_NO_CONTENT
 
 #8
 @app.route('/crange.html')
@@ -154,52 +188,59 @@ def catRange(categoryname, startRange, endRange):
     for key, value in data.items():
         if key == categoryname:
             if startRange < 1 or  endRange > len(value):
-                return "{}", status.HTTP_204_NO_CONTENT
+                return "[]", status.HTTP_400_BAD_REQUEST
             elif endRange - startRange + 1 > 100:
-                return "{}", status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+                return "[]", status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
             else:
-                return render_template('listActsCat.html', result = data[key][startRange-1: endRange]), status.HTTP_200_OK
-    return "{}", status.HTTP_204_NO_CONTENT
+                return json.dumps(data[key][startRange-1: endRange]), status.HTTP_200_OK
+    return "[]", status.HTTP_204_NO_CONTENT
+
 #9
 @app.route('/api/v1/acts/upvote', methods = ["POST"])
 def upvote():
-    actid = int(request.json[0])
-    acts = open('acts.json')
-    data = json.load(acts)
-    acts.close()
-    for key, value in data.items():
-        for i in range(len(value)):
-            if value[i]['actId'] == actid:
-                data[key][i]['upvotes'] += 1
-                acts = open('acts.json', 'w')
-                json.dump(data, acts)
-                acts.close()
-                return "{}", status.HTTP_200_OK
-    return "{}", status.HTTP_400_BAD_REQUEST
+    if request.method == "POST":
+        actid = request.json[0]
+        acts = open('acts.json')
+        data = json.load(acts)
+        acts.close()
+        for key, value in data.items():
+            for i in range(len(value)):
+                if value[i]['actId'] == actid:
+                    data[key][i]['upvotes'] += 1
+                    acts = open('acts.json', 'w')
+                    json.dump(data, acts)
+                    acts.close()
+                    return "{}", status.HTTP_200_OK
+        return "{}", status.HTTP_400_BAD_REQUEST
+    else:
+        return "{}", status.HTTP_405_METHOD_NOT_ALLOWED
 
 #10
 @app.route('/api/v1/acts/<actid>', methods = ["DELETE"])
 def removeAct(actid):
-    actid = int(actid)
-    acts = open('acts.json')
-    data = json.load(acts)
-    acts.close()
-    for key, value in data.items():
-        for act in range(len(value)):
-            if value[act]['actId'] == actid:
-                data[key].pop(act);
-                acts = open('acts.json', 'w')
-                json.dump(data, acts)
-                acts.close()
-                actsid = open('actid.json')
-                dataid = json.load(actsid)
-                actsid.close()
-                dataid['ID'].remove(actid)
-                actsid = open('actid.json', 'w')
-                json.dump(dataid, actsid)
-                actsid.close()
-                return "{}", status.HTTP_200_OK
-    return "{}", status.HTTP_400_BAD_REQUEST
+    if request.json == {} and actid != 'upvote':
+        actid = int(actid)
+        acts = open('acts.json')
+        data = json.load(acts)
+        acts.close()
+        for key, value in data.items():
+            for act in range(len(value)):
+                if value[act]['actId'] == actid:
+                    data[key].pop(act);
+                    acts = open('acts.json', 'w')
+                    json.dump(data, acts)
+                    acts.close()
+                    actsid = open('actid.json')
+                    dataid = json.load(actsid)
+                    actsid.close()
+                    dataid['ID'].remove(actid)
+                    actsid = open('actid.json', 'w')
+                    json.dump(dataid, actsid)
+                    actsid.close()
+                    return "{}", status.HTTP_200_OK
+        return "{}", status.HTTP_400_BAD_REQUEST
+    else:
+        return "{}",status.HTTP_405_METHOD_NOT_ALLOWED
 
 #11
 @app.route('/upload.html')
@@ -215,6 +256,17 @@ def uploadAct():
     for cred in data['credentials']:
         userlist.append(cred['username'])
     if request.json['username'] not in userlist:
+        return "{}", status.HTTP_400_BAD_REQUEST
+    ts = request.json['timestamp']
+    if len(ts) == 19 and ts[2] == '-' and ts[5] == '-' and ts[10] == ':' and ts[13] == '-' and ts[16] == '-':
+        pass;
+    else:
+        return "{}", status.HTTP_400_BAD_REQUEST
+    try:
+        base64.decodestring(str.encode(request.json['imgB64']))
+    except binascii.Error:
+        return "b64", status.HTTP_400_BAD_REQUEST
+    if 'upvotes' in request.json.keys():
         return "{}", status.HTTP_400_BAD_REQUEST
     actid = open('actid.json')
     dataid = json.load(actid)
@@ -237,10 +289,6 @@ def uploadAct():
     json.dump(dataid, actid)
     actid.close()
     return "{}", status.HTTP_201_CREATED
-
-@app.route('/error.html/<code>/<meaning>')
-def error(code, meaning):
-    return render_template('error.html', result = [code, meaning])
 
 if __name__ == '__main__':
    app.run(host = '0.0.0.0', debug = True)

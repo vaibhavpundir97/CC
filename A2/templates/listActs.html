@@ -38,21 +38,21 @@
         </div>
         <div id="navbar6" class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="http://0.0.0.0:5000">Home</a></li>
-            <li><a href="http://0.0.0.0:5000/user.html">Add User</a></li>
-            <li><a href="http://0.0.0.0:5000/remove.html">Remove User</a></li>
+            <li><a href="http://localhost:5000">Home</a></li>
+            <li><a href="http://localhost:5000/user.html">Add User</a></li>
+            <li><a href="http://localhost:5000/remove.html">Remove User</a></li>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu">
-                <li><a href="http://0.0.0.0:5000/api/v1/categories">List All Categories</a></li>
-                <li><a href="http://0.0.0.0:5000/addcat.html">Add a Category</a></li>
-                <li><a href="http://0.0.0.0:5000/cremove.html">Remove a Category</a></li>
+                <li><a href="http://localhost:5000/api/v1/categories">List All Categories</a></li>
+                <li><a href="http://localhost:5000/addcat.html">Add a Category</a></li>
+                <li><a href="http://localhost:5000/cremove.html">Remove a Category</a></li>
                 <li class="divider"></li>
                 <li class="active"><a href="#">List acts for a given category</a></li>
-                <li><a href="http://0.0.0.0:5000/size.html">List number of acts for a given category</a></li>
-                <li><a href="http://0.0.0.0:5000/crange.html">Return number of acts for a given category in a given range</a></li>
+                <li><a href="http://localhost:5000/size.html">List number of acts for a given category</a></li>
+                <li><a href="http://localhost:5000/crange.html">Return number of acts for a given category in a given range</a></li>
                 <li class="divider"></li>
-                <li><a href="http://0.0.0.0:5000/upload.html">Upload an act</a></li>
+                <li><a href="http://localhost:5000/upload.html">Upload an act</a></li>
               </ul>
             </li>
           </ul>
@@ -75,13 +75,23 @@
       submitForm:function() {
         var category = document.getElementById('cat');
         var form = document.getElementById('form');
-        action = "http://0.0.0.0:5000/api/v1/categories/" + category.value + "/acts";
+        action = "http://" + location.hostname + ":5000/api/v1/categories/" + category.value + "/acts";
         form.action = action
         form.method = 'GET'
         //alert(form.action)
         form.submit()
+      },
+      anchorTag: function() {
+        anchor=document.getElementsByTagName('a');
+        for(i in anchor) {
+          if(anchor[i].href == undefined)
+            continue;
+          ref = "http://"+location.hostname+":5000"+anchor[i].href.slice(21);
+          anchor[i].href = ref;
+        }
       }
-    }
+    };
+    obj.anchorTag();
     var submit = document.getElementById('sub');
     submit.addEventListener('click', obj.submitForm, false);
   </script>

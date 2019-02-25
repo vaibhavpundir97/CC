@@ -38,19 +38,19 @@
         </div>
         <div id="navbar6" class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="http://0.0.0.0:5000">Home</a></li>
-            <li><a href="http://0.0.0.0:5000/user.html">Add User</a></li>
-            <li><a href="http://0.0.0.0:5000/remove.html">Remove User</a></li>
+            <li><a href="http://localhost:5000">Home</a></li>
+            <li><a href="http://localhost:5000/user.html">Add User</a></li>
+            <li><a href="http://localhost:5000/remove.html">Remove User</a></li>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu">
-                <li><a href="http://0.0.0.0:5000/api/v1/categories">List All Categories</a></li>
-                <li><a href="http://0.0.0.0:5000/addcat.html">Add a Category</a></li>
-                <li><a href="http://0.0.0.0:5000/cremove.html">Remove a Category</a></li>
+                <li><a href="http://localhost:5000/api/v1/categories">List All Categories</a></li>
+                <li><a href="http://localhost:5000/addcat.html">Add a Category</a></li>
+                <li><a href="http://localhost:5000/cremove.html">Remove a Category</a></li>
                 <li class="divider"></li>
-                <li><a href="http://0.0.0.0:5000/listact.html">List acts for a given category</a></li>
-                <li><a href="http://0.0.0.0:5000/size.html">List number of acts for a given category</a></li>
-                <li><a href="http://0.0.0.0:5000/crange.html">Return number of acts for a given category in a given range</a></li>
+                <li><a href="http://localhost:5000/listact.html">List acts for a given category</a></li>
+                <li><a href="http://localhost:5000/size.html">List number of acts for a given category</a></li>
+                <li><a href="http://localhost:5000/crange.html">Return number of acts for a given category in a given range</a></li>
                 <li class="divider"></li>
                 <li class="active"><a href="#">Upload an act</a></li>
               </ul>
@@ -92,7 +92,7 @@
         var com = document.getElementById("cap");
         var cname = document.getElementById("cname");
         var xhttp = new XMLHttpRequest();
-        xhttp.open("POST", "http://0.0.0.0:5000/api/v1/acts", true);
+        xhttp.open("POST", "http://" + location.hostname + ":5000/api/v1/acts", true);
         xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
         var today = new Date();
         var dd = today.getDate();
@@ -102,7 +102,7 @@
             dd='0'+dd;
         if(mm<10)
             mm='0'+mm;
-        date = mm+'-'+dd+'-'+yyyy;
+        date = dd+'-'+mm+'-'+yyyy;
         time = today.toLocaleTimeString();
         time = time.replace(':', '-').replace(':', '-');
         var act = {
@@ -114,7 +114,14 @@
           'imgB64': imgb64
         };
         xhttp.send(JSON.stringify(act));
-        location.replace("http://0.0.0.0:5000");
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 400) {
+            location.replace("http://" + location.hostname + ":5000/error.html/400/BAD_REQUEST");
+          }
+	  else
+	    location.replace("http://" + location.hostname + ":5000");
+        }
+        //location.replace("http://" + location.hostname + ":5000");
       },
       addEvent: function() {
         var submit = document.getElementById("sub");
@@ -131,9 +138,19 @@
           }
         }
         document.getElementById("img").addEventListener("change", readFile);
+      },
+      anchorTag: function() {
+        anchor=document.getElementsByTagName('a');
+        for(i in anchor) {
+          if(anchor[i].href == undefined)
+            continue;
+          ref = "http://"+location.hostname+":5000"+anchor[i].href.slice(21);
+          anchor[i].href = ref;
+        }
       }
     };
     obj.addEvent()
     obj.base64()
+    obj.anchorTag();
   </script>
 </html>
