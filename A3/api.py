@@ -6,8 +6,17 @@ import time
 import base64
 import binascii
 from collections import Counter
+import re
 app = Flask(__name__)
 
+def is_sha1(maybe_sha):
+    if len(maybe_sha) != 40:
+        return False
+    try:
+        sha_int = int(maybe_sha, 16)
+    except ValueError:
+        return False
+    return True
 
 def changeTime(timestamp, bool = False):
     if bool:
@@ -22,14 +31,6 @@ def homepage():
     conn.execute('CREATE TABLE ACTS (ACTID BIGINT UNIQUE, USERNAME LONGTEXT, TIMESTAMP DATETIME NOT NULL, CAPTION LONGTEXT, UPVOTES INT NOT NULL, CATEGORYNAME LONGTEXT, IMGB64 LONGTEXT NOT NULL)')
     conn.close()
     return "{}"
-    '''acts = open('acts.json')
-    data = json.load(acts)
-    acts.close()
-    result = {}
-    for key, value in data.items():
-        if len(value) != 0:
-            result[key] = value
-    return render_template('index.html', result = result)'''
 
 #1
 @app.route('/user.html')
@@ -42,6 +43,9 @@ def addUser():
     users = conn.execute('SELECT USERNAME FROM USERS')
     usernames = [row[0] for row in users]
     if request.json['username'] in usernames:
+        conn.close()
+        return "{}", status.HTTP_400_BAD_REQUEST
+    if not is_sha1(request.json['password']):
         conn.close()
         return "{}", status.HTTP_400_BAD_REQUEST
     conn.execute('INSERT INTO USERS VALUES ("' + request.json['username'] + '"' + ',' + '"' + request.json['password'] + '"' + ')')
@@ -128,14 +132,14 @@ def listActs(categoryname):
     if categoryname not in [row[0] for row in cursor]:
         conn.close()
         return "[]", status.HTTP_400_BAD_REQUEST
-    cursor = conn.execute('SELECT * FROM ACTS WHERE CATEGORYNAME = "' + categoryname + '"')
+    cursor = conn.execute('SELECT * FROM ACTS WHERE CATEGORYNAME = "' + categoryname + '" ORDER BY TIMESTAMP DESC')
     rows = cursor.fetchall()
     if len(rows) >= 100:
         conn.close()
         return "[]", status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
     out = []
     for row in rows:
-        out.append({'actId': row[0], 'username': row[1], 'timestamp': row[2], 'caption': changeTime(row[3]), 'upvotes': row[4], 'imgB64': row[6]})
+        out.append({'actId': row[0], 'username': row[1], 'timestamp': changeTime(row[2]), 'caption': row[3], 'upvotes': row[4], 'imgB64': row[6]})
     conn.close()
     return json.dumps(out), status.HTTP_200_OK
 
@@ -164,13 +168,13 @@ def catRange(categoryname, startRange, endRange):
         return "[]", status.HTTP_400_BAD_REQUEST
     if endRange - startRange + 1 > 100:
         return "[]", status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
-    cursor = conn.execute('SELECT * FROM ACTS WHERE CATEGORYNAME = "' + categoryname + '"')
+    cursor = conn.execute('SELECT * FROM ACTS WHERE CATEGORYNAME = "' + categoryname + '" ORDER BY TIMESTAMP DESC')
     rows = cursor.fetchall()
     if startRange < 1 or  endRange > len(rows):
         return "[]", status.HTTP_400_BAD_REQUEST
     out = []
     for row in rows:
-        out.append({'actId': row[0], 'username': row[1], 'timestamp': row[2], 'caption': changeTime(row[3]), 'upvotes': row[4], 'imgB64': row[6]})
+        out.append({'actId': row[0], 'username': row[1], 'timestamp': changeTime(row[2]), 'caption': row[3], 'upvotes': row[4], 'imgB64': row[6]})
     conn.close()
     return json.dumps(out[startRange-1:endRange]), status.HTTP_200_OK
 
@@ -224,10 +228,8 @@ def uploadAct():
         conn.close()
         print("category")
         return "{}", status.HTTP_400_BAD_REQUEST
-    ts = request.json['timestamp']
-    if len(ts) == 19 and ts[2] == '-' and ts[5] == '-' and ts[10] == ':' and ts[13] == '-' and ts[16] == '-':
-        pass;
-    else:
+    pattern = '(\d{2})-(\d{2})-(\d{4}):(\d{2})-(\d{2})-(\d{2})'
+    if not re.match(pattern, request.json['timestamp']):
         conn.close()
         print("time")
         return "{}", status.HTTP_400_BAD_REQUEST
